@@ -1,43 +1,203 @@
-<!-- Web Developer: Oriana Jaramillo -->
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESL Assistant </title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESL Assistant Tool</title>
+
+<style>
+/* General body styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #d7f8e5;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #55E1E6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.nav-buttons button {
+  background-color: #0097A7;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  margin-right: 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-buttons button:hover {
+  background-color: #3840b4;
+}
+
+.search-bar {
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+}
+
+/* Main layout */
+main {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+}
+
+/* Translator column */
+.left-column {
+  flex: 0 0 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Paper style boxes */
+.textarea-style {
+  width: 100%;
+  font-size: 16px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  line-height: 28px;
+  min-height: 100px;
+  white-space: pre-wrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+/* Blue ruled lines */
+.textarea-style::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(99, 158, 255, 0.35) 0px,
+    rgba(99, 158, 255, 0.35) 1px,
+    transparent 1px,
+    transparent 28px
+  );
+  z-index: 1;
+  border-radius: 8px;
+}
+
+/* Translate button */
+#translateBtn {
+  font-size:14px;
+  padding:6px 12px;
+  cursor:pointer;
+  border-radius:6px;
+  border:none;
+  background-color:#0097A7;
+  color:white;
+  margin-top:5px;
+  align-self: flex-start;
+}
+
+#translateBtn:hover {
+  background-color:#3840b4;
+}
+
+/* Output box */
+#outputText {
+  min-height: 150px;
+  position: relative;
+  z-index: 3;
+}
+</style>
 </head>
 <body>
-  <!-- Top Navigation Bar -->
-  <header>
-    <nav class="navbar">
-      <div class="nav-buttons">
-        <button>Pick a language</button>
-        <button>Translate</button>
-        <button>AI Chat Box</button>
-        <button>Dictionary</button>
-      </div>
-      <input type="text" placeholder="Search Bar" class="search-bar">
-    </nav>
-  </header>
 
-  <!-- Main content -->
-  <main>
-    <section class="todo">
-      <h2>TO DO LIST</h2>
-    </section>
+<!-- Navbar -->
+<header>
+  <nav class="navbar">
+    <div class="nav-buttons">
+      <button>Translate</button>
+      <button>AI Chat Box</button>
+      <button>Dictionary</button>
+    </div>
+    <input type="text" placeholder="Search Bar" class="search-bar">
+  </nav>
+</header>
 
-    <section class="ai-assistance">
-      <button class="ai-button">AI Assistance</button>
-    </section>
-  </main>
+<!-- Main Section -->
+<main>
+  <div class="left-column">
+    <div id="inputText" class="textarea-style" contenteditable="true" placeholder="Enter text here..."></div>
+    <label for="targetLang">Translate to:</label>
+    <select id="targetLang">
+      <option value="es">Spanish</option>
+      <option value="en">English</option>
+      <option value="fr">French</option>
+      <option value="de">German</option>
+      <option value="zh">Chinese</option>
+      <option value="ja">Japanese</option>
+      <option value="ar">Arabic</option>
+      <option value="ru">Russian</option>
+      <option value="it">Italian</option>
+      <option value="pt">Portuguese</option>
+      <option value="hi">Hindi</option>
+      <option value="ko">Korean</option>
+      <option value="nl">Dutch</option>
+      <option value="sv">Swedish</option>
+      <option value="pl">Polish</option>
+    </select>
+    <button id="translateBtn">Translate</button>
+    <h2>Translated Text:</h2>
+    <div id="outputText" class="textarea-style"></div>
+  </div>
+</main>
 
-  <script src="script.js"></script>
+<script>
+document.getElementById("translateBtn").addEventListener("click", async () => {
+  const text = document.getElementById("inputText").innerText.trim();
+  const targetLang = document.getElementById("targetLang").value;
+
+  if (!text) {
+    document.getElementById("outputText").innerText = "Please enter text to translate.";
+    return;
+  }
+
+  try {
+    const response = await fetch("https://libretranslate.de/translate", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        q: text,
+        source: "auto",
+        target: targetLang,
+        format: "text"
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.translatedText) {
+      document.getElementById("outputText").innerText = data.translatedText;
+    } else {
+      document.getElementById("outputText").innerText = "Error: Translation not returned.";
+      console.log("Full API response:", data);
+    }
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+    document.getElementById("outputText").innerText = "Translation failed.";
+  }
+});
+</script>
+
 </body>
 </html>
